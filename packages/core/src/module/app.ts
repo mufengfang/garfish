@@ -19,6 +19,7 @@ import {
   parseContentType,
   createAppContainer,
   setDocCurrentScript,
+  nextTick,
 } from '@garfish/utils';
 import { Garfish } from '../garfish';
 import { interfaces } from '../interface';
@@ -408,7 +409,12 @@ export class App {
         appRenderInfo: { isUnmount },
       });
     }
-    this.entryManager.DOMApis.removeElement(appContainer);
+
+    // In a react application, removing container directly may cause a component unmount error after executing unmountComponentAtNode.
+    // Because of the related dom has be removed, if you access the dom in useEffect/useLayoutEffect callback, it will throw a error.
+    nextTick(() => {
+      this.entryManager.DOMApis.removeElement(appContainer);
+    });
   }
 
   // Create a container node and add in the document flow

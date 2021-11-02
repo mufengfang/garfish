@@ -1,5 +1,5 @@
 import { interfaces } from '@garfish/core';
-import { warn, isPlainObject } from '@garfish/utils';
+import { warn, isPlainObject, nextTick } from '@garfish/utils';
 import { Module } from './types';
 import { Sandbox } from './sandbox';
 import { sandboxMap } from './utils';
@@ -138,7 +138,12 @@ function createOptions(Garfish: interfaces.Garfish) {
     afterUnmount(appInfo, appInstance, isCacheMode) {
       // The caching pattern to retain the same context
       if (!appInstance.vmSandbox || isCacheMode) return;
-      appInstance.vmSandbox.reset();
+
+      // In order to avoid useEffect/useLayoutEffect callback execution errors.
+      // The clearEffects function would remove all dom effects, which may cause componets unmount error.
+      nextTick(() => {
+        appInstance.vmSandbox.reset();
+      });
     },
 
     afterMount(appInfo, appInstance) {
